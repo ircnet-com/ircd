@@ -1191,6 +1191,10 @@ nickkilldone:
 		(void)strcpy(sptr->name, nick);
 		if (sptr->user)
 		{
+            if(!IsCAPNegotiation(sptr)) {
+                return 3;
+            }
+
 			/*
 			** USER already received, now we have NICK.
 			** *NOTE* For servers "NICK" *must* precede the
@@ -2308,7 +2312,7 @@ int	m_user(aClient *cptr, aClient *sptr, int parc, char *parv[])
 	sptr->user2 = mystrdup(umodes);
 	sptr->user3 = mystrdup(server);
 #endif
-	if (sptr->name[0]) /* NICK already received, now we have USER... */
+	if (sptr->name[0] && !IsCAPNegotiation(sptr)) /* NICK already received, now we have USER... */
 	{
 		return register_user(cptr, sptr, sptr->name, username);
 	}

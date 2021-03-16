@@ -263,7 +263,8 @@ typedef enum Status {
 #define SetXlined(x)		((x)->user->flags |= FLAGS_XLINED)
 #define ClearXlined(x)		((x)->user->flags &= ~FLAGS_XLINED)
 #endif
-
+#define IsCAPNegotiation(x)  ((x)->cap_negotation)
+#define HasCap(x, y)         ((x)->caps & y)
 
 /*
  * defined debugging levels
@@ -567,7 +568,8 @@ struct Client	{
 	char	*user2;	/* 2nd param of USER */
 	char	*user3;	/* 3rd param of USER */
 #endif
-
+    int caps; /* Enabled capabilities */
+    int cap_negotation; /* CAP negotiation is in progress. Registration must wait for "CAP END" */
 };
 
 #define	CLIENT_LOCAL_SIZE sizeof(aClient)
