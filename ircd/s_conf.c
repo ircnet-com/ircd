@@ -256,6 +256,8 @@ char	*oline_flags_to_string(long flags)
 		*s++ ='D';
 	if (flags & ACL_SET)
 		*s++ ='e';
+	if (flags & ACL_ENCAP)
+		*s++ ='E';
 	if (flags & ACL_TKLINE)
 		*s++ ='T';
 	if (flags & ACL_KLINE)
@@ -306,6 +308,7 @@ long	oline_flags_parse(char *string)
 		case 'R': tmp |= ACL_RESTART; break;
 		case 'D': tmp |= ACL_DIE; break;
 		case 'e': tmp |= ACL_SET; break;
+		case 'E': tmp |= ACL_ENCAP; break;
 		case 'T': tmp |= ACL_TKLINE; break;
 		case 'q': tmp |= ACL_KLINE; break;
 #ifdef CLIENTS_CHANNEL
@@ -348,6 +351,9 @@ long	oline_flags_parse(char *string)
 #endif
 #ifndef OPER_SET
 	tmp &= ~ACL_SET;
+#endif
+#ifndef OPER_ENCAP
+	tmp &= ~ACL_ENCAP;
 #endif
 #ifndef OPER_TKLINE
 	tmp &= ~ACL_TKLINE;
@@ -2679,6 +2685,14 @@ int	prep_kline(int tkline, aClient *cptr, aClient *sptr, int parc, char **parv)
 			time = TKLINE_MAXTIME;
 		if (time < 0) /* overflown, must have wanted bignum :) */
 			time = TKLINE_MAXTIME;
+#endif
+#ifdef TKLINE_MAXTIME_REMOTE
+		if (!MyClient(sptr)) {
+			if (time > TKLINE_MAXTIME_REMOTE)
+				time = TKLINE_MAXTIME_REMOTE;
+			if (time < 0) /* overflown, must have wanted bignum :) */
+				time = TKLINE_MAXTIME_REMOTE;
+		}
 #endif
 		user = parv[2];
 		reason = parv[3];
