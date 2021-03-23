@@ -3901,7 +3901,7 @@ int	m_encap(aClient *cptr, aClient *sptr, int parc, char *parv[])
 			return 0;
 	} else if (MyClient(cptr)) {
 		/* For now .. hopefully is_allowed() will work for remote too, some day */
-		if (is_allowed(sptr, ACL_ENCAP))
+		if (!is_allowed(sptr, ACL_ENCAP))
 			return m_nopriv(cptr, sptr, parc, parv);
 
 		/* With great power comes great responsibility.
@@ -3939,12 +3939,16 @@ int	m_encap(aClient *cptr, aClient *sptr, int parc, char *parv[])
 	}
 
 	/* Target is either FQDN mask, such as *.cz or SID, like 0PN* */
-	if ((strchr(mask, '.') && match(mask, me.name)) || match(mask, me.serv->sid)) {
+	if ((strchr(mask, '.') && match(mask, me.name) == 0) || match(mask, me.serv->sid) == 0) {
 		/* create prefix */
 		toparse[0] = ':';
 
 		/* We might end up with :prefix :COMMAND here, sigh .. */
 		p = strchr(toparse, ' ');
+
+		if(p == NULL)
+		    return 2;
+
 		if (p[1] == ':') p[1] = ' ';
 
 		/* toparse now contains: :sendername COMMAND ... :lastarg.
