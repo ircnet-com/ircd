@@ -3389,6 +3389,9 @@ int	is_allowed(aClient *cptr, long function)
 		if (function == ACL_KLINE &&
 			(cptr->service->wants & SERVICE_WANT_KLINE))
 			return 1;
+        if (function == ACL_ENCAP &&
+            (cptr->service->wants & SERVICE_WANT_ENCAP))
+            return 1;
 		return 0;
 	}
 
