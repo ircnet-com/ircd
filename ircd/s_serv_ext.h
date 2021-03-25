@@ -79,4 +79,6 @@ EXTERN const  char *check_servername_errors[3][2];
 
 EXTERN int register_server(aClient *cptr);
 EXTERN int unregister_server(aClient *cptr);
+
+EXTERN aClient *best_service_with_flags(int flags);
 #undef EXTERN
