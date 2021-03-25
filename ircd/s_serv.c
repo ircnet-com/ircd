@@ -3894,8 +3894,10 @@ int	m_encap(aClient *cptr, aClient *sptr, int parc, char *parv[])
 				len += sprintf(buf+len, " %s", parv[i]);
 		}
 		Debug((DEBUG_SEND,"m_encap(serv->serv): %s", buf));
-		/* ...and broadcast it. */
-		sendto_serv_v(cptr, SV_UID, "%s", buf);
+		/* ...and broadcast it, if the message is not (only) for me. */
+		if(strcmp(mask, me.name) && strcmp(mask, me.serv->sid)) {
+            sendto_serv_v(cptr, SV_UID, "%s", buf);
+        }
 		/* Nothing of real interest here .. */
 		if (parc < 5 || strcmp(parv[2], "PARSE") || !encap_whitelisted(parv[4]))
 			return 0;
@@ -3935,7 +3937,9 @@ int	m_encap(aClient *cptr, aClient *sptr, int parc, char *parv[])
 		for (i = 3; i < parc; i++)
 			len += sprintf(buf + len, " %s%s", i+1 == parc?":":"", parv[i]);
 		Debug((DEBUG_SEND,"m_encap(cli->serv): %s", buf));
-		sendto_serv_v(cptr, SV_UID, "%s", buf);
+        if(strcmp(mask, me.name) && strcmp(mask, me.serv->sid)) {
+            sendto_serv_v(cptr, SV_UID, "%s", buf);
+        }
 	}
 
 	/* Target is either FQDN mask, such as *.cz or SID, like 0PN* */
