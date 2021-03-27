@@ -1191,7 +1191,7 @@ nickkilldone:
 		(void)strcpy(sptr->name, nick);
 		if (sptr->user)
 		{
-            if(!IsCAPNegotiation(sptr)) {
+            if(IsCAPNegotiation(sptr)) {
                 return 3;
             }
 
