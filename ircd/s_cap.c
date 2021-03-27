@@ -115,7 +115,7 @@ void cap_req(aClient *target, char *arg) {
         target->cap_negotation = 1;
     }
 
-    arg_copy = strdup(arg);
+    arg_copy = mystrdup(arg);
     prfx_len = snprintf(buf[0], BUFSIZE, ":%s CAP %s ACK :", ME, BadTo(target->name));
     memset(buf[1], 0, BUFSIZE);
 
