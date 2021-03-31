@@ -195,6 +195,7 @@ typedef enum Status {
 #ifdef XLINE
 #define FLAGS_XLINED	0x0100	/* X-lined client */
 #endif
+#define FLAGS_SASL  	0x0200	/* user is authenticated via SASL */
 #define	SEND_UMODES	(FLAGS_INVISIBLE|FLAGS_OPER|FLAGS_WALLOP|FLAGS_AWAY|FLAGS_RESTRICT)
 #define	ALL_UMODES	(SEND_UMODES|FLAGS_LOCOP)
 
@@ -265,6 +266,7 @@ typedef enum Status {
 #endif
 #define IsCAPNegotiation(x)  ((x)->cap_negotation)
 #define HasCap(x, y)         ((x)->caps & y)
+#define IsSASLAuthed(x)		 ((x)->user && (x)->user->flags & FLAGS_SASL)
 
 /*
  * defined debugging levels
@@ -376,6 +378,7 @@ struct	ListItem	{
 #ifdef XLINE
 #define CFLAG_XEXEMPT		0x00080
 #endif
+#define CFLAG_REQUIRE_SASL  0x00100
 
 #define IsConfRestricted(x)	((x)->flags & CFLAG_RESTRICTED)
 #define IsConfRNoDNS(x)		((x)->flags & CFLAG_RNODNS)
@@ -387,6 +390,7 @@ struct	ListItem	{
 #ifdef XLINE
 #define IsConfXlineExempt(x)	((x)->flags & CFLAG_XEXEMPT)
 #endif
+#define IsConfRequireSASL(x)	((x)->flags & CFLAG_REQUIRE_SASL)
 
 #define PFLAG_DELAYED		0x00001
 #define PFLAG_SERVERONLY	0x00002
@@ -570,6 +574,8 @@ struct Client	{
 #endif
     int caps; /* Enabled capabilities */
     int cap_negotation; /* CAP negotiation is in progress. Registration must wait for "CAP END" */
+    aClient *sasl_service; /* The SASL service that is responsible for this user. */
+    int sasl_auth_attempts; /* Number of SASL authentication attempts */
 };
 
 #define	CLIENT_LOCAL_SIZE sizeof(aClient)
@@ -951,6 +957,7 @@ typedef enum ServerChannels {
 #define EXITC_MBUF	'M'	/* mem alloc error */
 #define EXITC_PING	'P'	/* ping timeout */
 #define EXITC_BADPASS	'p'	/* bad password */
+#define EXITC_SASL_REQUIRED	'S'	/* SASL authentication required */
 #define EXITC_SENDQ	'Q'	/* send queue exceeded */
 #define EXITC_REF	'R'	/* Refused */
 #ifdef TKLINE
@@ -1053,3 +1060,5 @@ typedef struct
 #define CCL_NICK     0x10	/* nick changes */
 #endif
 
+// Capability flags
+#define CAP_SASL        	0x0001

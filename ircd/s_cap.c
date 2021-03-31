@@ -27,6 +27,7 @@ struct Cap {
     const char *name;
     const int flag;
 } cap_tab[] = {
+        {"sasl",           CAP_SASL},
         {NULL,             0}
 };
 
@@ -163,6 +164,15 @@ void cap_req(aClient *target, char *arg) {
  */
 void cap_end(aClient *cptr, aClient *sptr, char *arg) {
     if (IsRegistered(cptr)) {
+        return;
+    }
+
+    if(sptr->sasl_auth_attempts > 0 && !IsSASLAuthed(sptr)) {
+        /* If SASL authentication fails, some clients are automatically trying to register without authentication
+         * which would expose the IP address of the user. We disconnect him until he explicitly decides to connect
+         * without authentication.
+         */
+        exit_client(sptr, sptr, sptr, "SASL authentication failed");
         return;
     }
 

@@ -3851,6 +3851,7 @@ static	char *encap_whitelisted(char *cmd)
 		"TKLINE", "UNTKLINE",
 #endif
 		"VERSION", "ADMIN",
+        "SASL",
 		NULL
 	};
 	for (i = 0; whitelist[i]; i++)

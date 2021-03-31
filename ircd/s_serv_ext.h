@@ -71,6 +71,8 @@ EXTERN int m_restart (aClient *cptr, aClient *sptr, int parc, char *parv[]);
 EXTERN int m_die (aClient *cptr, aClient *sptr, int parc, char *parv[]);
 EXTERN int m_set(aClient *cptr, aClient *sptr, int parc, char *parv[]);
 EXTERN int m_cap(aClient *cptr, aClient *sptr, int parc, char *parv[]);
+EXTERN int m_authenticate(aClient *cptr, aClient *sptr, int parc, char *parv[]);
+EXTERN int m_sasl(aClient *cptr, aClient *sptr, int parc, char *parv[]);
 
 void	add_server_to_tree(aClient *cptr);
 void	remove_server_from_tree(aClient *cptr);

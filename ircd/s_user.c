@@ -549,8 +549,9 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 		if ((i = check_client(sptr)))
 		{
 			struct msg_set { char shortm; char *longm; };
-#define EXIT_MSG_COUNT 8
+#define EXIT_MSG_COUNT 9
 			static struct msg_set exit_msg[EXIT_MSG_COUNT] = {
+			{ EXITC_SASL_REQUIRED, "SASL authentication required" },
 			{ EXITC_BADPASS, "Bad password" },
 			{ EXITC_GUHMAX, "Too many user connections (global)" },
 			{ EXITC_GHMAX, "Too many host connections (global)" },
@@ -720,7 +721,8 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 			istat.is_l_myclnt_t = timeofday;
 			istat.is_l_myclnt = istat.is_myclnt;
 		}
-		strcpy(sptr->user->uid, next_uid());
+		if(!*sptr->user->uid) // may have been set in m_authenticate() already
+    		strcpy(sptr->user->uid, next_uid());
 		if (nick[0] == '0' && nick[1] == '\0')
 		{
 			strncpyzt(nick, sptr->user->uid, UIDLEN + 1);
