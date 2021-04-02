@@ -357,6 +357,7 @@
 #define	RPL_ETRACEFULL       708
 #define	RPL_ETRACEEND        759
 
+#define RPL_LOGGEDIN		 900
 #define RPL_SASLSUCCESS		 903
 #define ERR_SASLFAIL		 904
 #define ERR_SASLTOOLONG		 905

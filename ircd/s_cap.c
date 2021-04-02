@@ -22,6 +22,7 @@
 #include "os.h"
 #include "s_defines.h"
 #include "s_externs.h"
+#include "s_sasl_ext.h"
 
 struct Cap {
     const char *name;
@@ -167,12 +168,9 @@ void cap_end(aClient *cptr, aClient *sptr, char *arg) {
         return;
     }
 
-    if(sptr->sasl_auth_attempts > 0 && !IsSASLAuthed(sptr)) {
-        /* If SASL authentication fails, some clients are automatically trying to register without authentication
-         * which would expose the IP address of the user. We disconnect him until he explicitly decides to connect
-         * without authentication.
-         */
-        exit_client(sptr, sptr, sptr, "SASL authentication failed");
+    if((sptr->sasl_service != NULL || sptr->sasl_auth_attempts > 0) && !IsSASLAuthed(sptr)) {
+        // SASL authentication exchange has been aborted
+        process_implicit_sasl_abort(sptr);
         return;
     }
 

@@ -106,7 +106,6 @@ int m_sasl(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
  * parv[3] = SASL message type
  * parv[4] = SASL message
  * parv[5] = SASL message (optional)
- * parv[6] = SASL message (optional)
  */
 void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
     aClient *acptr;
@@ -134,20 +133,20 @@ void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
     if(*parv[3] == 'C') {
         sendto_one(acptr, "AUTHENTICATE %s", parv[4]);
     }
+    else if(*parv[3] == 'L') {
+        // Login
+        sendto_one(acptr, replies[RPL_LOGGEDIN], me.name, BadTo(acptr->name), parv[4]);
 
-    else if(*parv[3] == 'D')
-    {
+        if (parc >= 6) {
+            // parv[5] is the cloaked host name - not processed in this implementation
+        }
+    }
+    else if(*parv[3] == 'D') {
+        // Authentication done
         if(*parv[4] == 'S') {
             // Authentication successful
             acptr->user->flags |= FLAGS_SASL;
             sendto_one(acptr, replies[RPL_SASLSUCCESS], me.name, BadTo(acptr->name));
-
-            if(parc >= 6) {
-                // parv[5] is the login name - do we need to store it?
-            }
-            if(parc >= 7) {
-                // parv[6] is the cloaked host name - not processed in this implementation
-            }
         }
         else if(*parv[4] == 'F') {
             // Authentication failed
@@ -170,6 +169,7 @@ void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
         acptr->sasl_service = NULL;
     }
     else if(*parv[3] == 'M') {
+        // Supported mechanisms
         sendto_one(acptr, replies[RPL_SASLMECHS], me.name, BadTo(acptr->name), parv[4]);
     }
 }
@@ -193,6 +193,24 @@ void m_sasl_server(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
     if ((acptr = find_service(parv[2], NULL)) && MyConnect(acptr)) {
         sendto_one(acptr, ":%s SASL %s %s %s %s", parv[0], parv[1], parv[2], parv[3], parv[4]);
     }
+}
+
+/*
+ * Executed when the client aborted the SASL authentication exchange implicitly.
+ * Example: the client sent "CAP END" before completing the authentication.
+ */
+void process_implicit_sasl_abort(aClient *sptr) {
+    if (sptr->sasl_service != NULL) {
+        // Inform the service that the authentication has been aborted
+        sendto_service(sptr->sasl_service, "SASL %s %s D A", sptr->user->uid, sptr->sasl_service->name);
+    }
+
+    /*
+     * If SASL authentication fails, some clients are automatically trying to register without authentication
+     * which would expose the IP address of the user. We disconnect him until he explicitly decides to connect
+     * without authentication.
+     */
+    exit_client(sptr, sptr, sptr, "SASL authentication failed");
 }
 
 /*
