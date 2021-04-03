@@ -1191,12 +1191,8 @@ nickkilldone:
 
 		/* This had to be copied here to avoid problems.. */
 		(void)strcpy(sptr->name, nick);
-		if (sptr->user)
+		if (sptr->user && !IsCAPNegotiation(sptr))
 		{
-            if(IsCAPNegotiation(sptr)) {
-                return 3;
-            }
-
 			/*
 			** USER already received, now we have NICK.
 			** *NOTE* For servers "NICK" *must* precede the
