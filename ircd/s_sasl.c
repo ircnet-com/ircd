@@ -126,7 +126,9 @@ void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
     }
 
     // Check if the assigned service is responding
-    if(acptr->sasl_service->service == NULL || acptr->sasl_service->service != sptr->service) {
+    if (acptr->sasl_service == NULL
+        || acptr->sasl_service->service == NULL
+        || acptr->sasl_service->service != sptr->service) {
         return;
     }
 
