@@ -581,6 +581,9 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 			}
 			return exit_client(cptr, cptr, &me, exit_msg[i].longm);
 		}
+#ifdef SPOOF
+		aconf = sptr->confs->value.aconf;
+#endif
 #ifndef	NO_PREFIX
 		if (IsRestricted(sptr))
 		{
@@ -598,7 +601,19 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 		}
 #endif
 
+#ifdef SPOOF
+#ifdef SPOOF_IDENTCHAR
+		if(IsConfSpoofed(aconf))
+		{
+			prefix = SPOOF_IDENTCHAR;
+			*user->username = prefix;
+			strncpy(&user->username[1], buf2, USERLEN);
+			user->username[USERLEN] = '\0';
+		}
+#endif
+#else
 		aconf = sptr->confs->value.aconf;
+#endif
 #ifdef UNIXPORT
 		if (IsUnixSocket(sptr))
 		{
@@ -745,7 +760,25 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 # endif
 			);
 #endif
+#ifdef SPOOF_WELCOME_ALL
+		/* only show nickname in RPL_WELCOME reply on connect for all clients -- mh 20200115*/
+		sprintf(buf, "%s", nick);
+#else
+#ifdef SPOOF_WELCOME
+		/* only show nickname in RPL_WELCOME reply on connect for spoofed clients
+		 * but  full nickname!user@host for non-spoofed clients -- mh 20200112 */
+		if (IsSpoofed(sptr))
+		{
+			sprintf(buf, "%s", nick);
+		}
+		else
+		{
+			sprintf(buf, "%s!%s@%s", nick, user->username, user->host);
+		}
+#else
 		sprintf(buf, "%s!%s@%s", nick, user->username, user->host);
+#endif
+#endif
 		add_to_uid_hash_table(sptr->user->uid, sptr);
 		sptr->exitc = EXITC_REG;
 		sendto_one(sptr, replies[RPL_WELCOME], ME, BadTo(nick), buf);
@@ -770,6 +803,14 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 		(void)m_motd(sptr, sptr, 1, parv);
 		if (IsRestricted(sptr))
 			sendto_one(sptr, replies[ERR_RESTRICTED], ME, BadTo(nick));
+#ifdef SPOOF_NOTICE
+		/* send a notice to client if the connection is spoofed.
+		 * notice is defined as SPOOF_NOTICE in config.h -- mh 20191230 */
+		if (IsConfSpoofed(sptr->confs->value.aconf))
+		{
+			sendto_one(sptr, ":%s NOTICE %s :%s", ME, nick, SPOOF_NOTICE);
+		}
+#endif
 		if (IsConfNoResolve(sptr->confs->value.aconf))
 		{
 			sendto_one(sptr, ":%s NOTICE %s :Due to an administrative"
@@ -806,7 +847,11 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 		sendto_one(acptr,
 				":%s UNICK %s %s %s %s %s %s :%s",
 				user->servp->sid, nick, user->uid,
+#ifdef SPOOF
+				user->username, user->host, get_client_ip(sptr),
+#else
 				user->username, user->host, user->sip,
+#endif
 				(*buf) ? buf : "+", sptr->info);
 	}	/* for(my-leaf-servers) */
 #ifdef	USE_SERVICES
@@ -2043,6 +2088,15 @@ static	void	send_whois(aClient *sptr, aClient *acptr)
 	if (IsAnOper(acptr))
 		sendto_one(sptr, replies[RPL_WHOISOPERATOR], ME, BadTo(sptr->name), name);
 
+#ifdef SPOOF_WHOISCLOAKED
+	/* send a 320 numeric RPL_WHOISCLOAKED reply if client is spoofed.
+	 * reply defined as SPOOF_WHOISCLOAKED in config.h -- mh 20191230 */
+	if (IsSpoofed(acptr))
+	{
+		sendto_one(sptr, replies[RPL_WHOISCLOAKED], ME, BadTo(sptr->name), name, SPOOF_WHOISCLOAKED);
+	}
+#endif
+
 	if (acptr->user && MyConnect(acptr))
 		sendto_one(sptr, replies[RPL_WHOISIDLE], ME, BadTo(sptr->name),
 			   name, (long)(timeofday - user->last)
@@ -2205,6 +2259,9 @@ int	m_user(aClient *cptr, aClient *sptr, int parc, char *parv[])
 	char	ipbuf[BUFSIZE];
 	int	what,i;
 	char 	*s;
+#ifdef PASSOPTS
+	Reg char *passopts; /* password options set in extended PASS argument -- mh 20200102 */
+#endif
 
 	if (MyConnect(cptr) && IsUnknown(cptr) &&
 		IsConfServeronly(cptr->acpt->confs->value.aconf))
@@ -2300,7 +2357,39 @@ int	m_user(aClient *cptr, aClient *sptr, int parc, char *parv[])
 	
 	reorder_client_in_list(sptr);
 	if (sptr->info != DefInfo)
+#ifdef PASSOPTS
+	{
+		/* if we have extended PASS arguments, attempt to parse them. -- mh 20200102 */
+		/* see doc/passopts.txt for more information -- mh 20200112 */
+
+		/* do we need to check if sptr->info is NULL first? i dont think so -- mh 20200102 */
+		if (strlen(sptr->info) > 0)
+		{
+			/* extended PASS arguments found */
+			for (s = passopts = strtoken(&s, sptr->info, " "); *s; s++)
+			{
+				if (!isdigit(*s))
+				{
+					/* passopts must be numeric only */
+					break;
+				}
+			}
+			if (*s == '\0')
+			{
+				/* passopts valid, parse it */
+				i = atoi(passopts); /* overflow checking needed? -- mh 20200102 */
+				if (POFLAG_REQPASS & i)
+				{
+					/* password required to match I-line password */
+					SetReqPass(sptr);
+				}
+			}
+		}
 		MyFree(sptr->info);
+	}
+#else
+		MyFree(sptr->info);
+#endif
 	if (strlen(realname) > REALLEN)
 		realname[REALLEN] = '\0';
 	sptr->info = mystrdup(realname);

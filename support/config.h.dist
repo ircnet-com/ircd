@@ -17,6 +17,140 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+/************************************************************************
+ *
+ * whoisextra (see doc/whoisextra)
+ *
+ * WHOISEXTRA
+ *  undefine to disable RPL_WHOISEXTRA numeric 320 WHOIS catch-all reply
+ *
+ *  (non-standard use of numeric 320)
+ *
+ */
+
+#define WHOISEXTRA
+
+
+/************************************************************************
+ *
+ * spoof (see doc/spoof.txt)
+ *
+ * SPOOF
+ *
+ *  undef to disable spoofs in I-lines.
+ *
+ * SPOOF_IDENTCHAR
+ *
+ *  undef to disable using spoof ident character, or define it to the
+ *  character you want to use.
+ *
+ *  you may want to leave this defined even without SPOOF defined if
+ *  other servers on the network use spoofs with ident character.
+ *
+ * SPOOF_WELCOME_ALL
+ *
+ *  define to only show nickname in RPL_WELCOME reply on connect for all
+ *  clients. this overrides SPOOF_WELCOME and extends the feature to all
+ *  clients.
+ *
+ * SPOOF_WELCOME
+ *
+ *  (only available when SPOOF is defined)
+ *
+ *  define to only show nickname in RPL_WELCOME reply on connect for
+ *  spoofed clients, otherwise nickname!user@host is shown with spoofed
+ *  address.
+ *
+ *  (https://modern.ircdocs.horse/#rplwelcome-001 some clients might try
+ *   to get their local address by parsing the hostname in RPL_WELCOME).
+ *
+ * SPOOF_NOTICE
+ *
+ *  (only available when SPOOF is defined)
+ *
+ *  undef to disable sending a notice to clients connecting if they are
+ *  spoofed, or define to the message you want to send
+ *
+ * SPOOF_WHOISCLOAKED
+ *
+ *  (only available when SPOOF is defined)
+ *
+ *  undef to disable sending a RPL_WHOISCLOAKED in /WHOIS reply for
+ *  spoofed (local) clients, or define to the message you want to show
+ *  for them
+ *
+ *  (will define to RPL_WHOISEXTRA if available, otherwise non-standard
+ *  use of numeric 320).
+ *
+ * SPOOF_STATSDEFINE
+ *
+ *  (only available when SPOOF is defined)
+ *
+ *  undef to disable showing spoof related defines in /STATS d.
+ *
+ *  (currently only documented in source: ircd/s_debug.c).
+ *
+ * SPOOF_IP
+ *
+ *  (only available when SPOOF is defined)
+ *
+ *  the IP address shown instead of the real one (for example in /STATS
+ *  L) for spoofed clients. this is a required define.
+ *
+ */
+
+#define SPOOF
+#define SPOOF_IDENTCHAR    '_'
+/* #define SPOOF_WELCOME_ALL */
+
+#ifdef SPOOF
+/* #define SPOOF_WELCOME */
+#define SPOOF_NOTICE       "Due to an administrative decision, your connection is cloaked."
+#define SPOOF_WHOISCLOAKED "is a Cloaked Connection (Spoof)"
+#define SPOOF_STATSDEFINE
+#define SPOOF_IP           "255.255.255.255"
+#endif
+
+
+/************************************************************************
+ *
+ * passopts (see doc/passopts.txt)
+ *
+ * PASSOPTS
+ *
+ *  undefine to disable support for extended PASS options v1
+ *
+ */
+
+#define PASSOPTS
+
+
+/************************************************************************
+ *
+ * versionlen (see doc/versionlen.txt)
+ *
+ * VERSIONLEN will override the default ircd version string length limit
+ * if defined
+ *
+ */
+
+#define VERSIONLEN 32
+
+
+/************************************************************************
+ *
+ * passwdlen (see doc/passwdlen.txt)
+ *
+ * PASSWDLEN
+ *
+ *  undefine to use ircs old default PASSWDLEN value, or define it to
+ *  the desired password length
+ *
+ */
+
+#define PASSWDLEN 128
+
+
 /*
  *  ircdwatch configuration options.
  */
@@ -792,6 +926,26 @@
 /*   STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP  */
 /*   STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP STOP  */
 /* ------------------------- END CONFIGURATION SECTION -------------------- */
+
+#ifdef SPOOF
+/* we require these if SPOOF is defined */
+#ifndef SPOOF_IP
+#define SPOOF_IP "255.255.255.255"
+#endif
+/* SPOOF_WELCOME_ALL overrrides SPOOF_WELCOME */
+#ifdef SPOOF_WELCOME
+#ifdef SPOOF_WELCOME_ALL
+#undef SPOOF_WELCOME
+#endif
+#endif
+#else
+/* we dont want these if SPOOF is not defined */
+#undef SPOOF_WELCOME
+#undef SPOOF_NOTICE
+#undef SPOOF_WHOISCLOAKED
+#undef SPOOF_STATSDEFINE
+#undef SPOOF_IP
+#endif
 
 #ifndef ENABLE_SUMMON
 #  undef LEAST_IDLE

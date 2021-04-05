@@ -341,6 +341,57 @@ void	send_defines(aClient *cptr, char *nick, char *extend)
 	sendto_one(cptr, ":%s %d %s :CCL:0x%X", ME, RPL_STATSDEFINE, nick,
 		CLIENTS_CHANNEL_LEVEL);
 #endif
+#ifdef SPOOF_STATSDEFINE
+	/* spoof defines
+	 *
+	 * -- mh 20200105
+	 *
+	 * Spoof:<version> S1:<welcome> SN:<notice> SW:<whois> SI:<identchar> PO:<passopts>
+	 *
+	 * version     SPOOF_VERSION string
+	 * welcome     2 if SPOOF_WELCOME_ALL is defined, 1 if SPOOF_WELCOME is defined, otherwise 0
+	 * notice      1 if SPOOF_NOTICE is defined, otherwise 0
+	 * whois       1 if SPOOF_WHOISCLOAKED is defined, otherwise 0
+	 * identchar   0 if SPOOF_IDENTCHAR is not defined, otherwise SPOOF_IDENTCHAR character singe-quoted
+	 * passopts    0 if PASSOPTS is not defined, otherwise PASSOPTS_VERSION string
+	 *
+	 */
+#ifdef SPOOF_IDENTCHAR
+	sendto_one(cptr, ":%s %d %s :Spoof:%s S1:%d SN:%d SW:%d SI:'%c' PO:%s", ME, RPL_STATSDEFINE, nick, SPOOF_VERSION,
+#else
+	sendto_one(cptr, ":%s %d %s :Spoof:%s S1:%d SN:%d SW:%d SI:%d PO:%s", ME, RPL_STATSDEFINE, nick, SPOOF_VERSION,
+#endif
+#ifdef SPOOF_WELCOME_ALL
+		2,
+#else
+#ifdef SPOOF_WELCOME
+		1,
+#else
+		0,
+#endif
+#endif
+#ifdef SPOOF_NOTICE
+		1,
+#else
+		0,
+#endif
+#ifdef SPOOF_WHOISCLOAKED
+		1,
+#else
+		0,
+#endif
+#ifdef SPOOF_IDENTCHAR
+		SPOOF_IDENTCHAR,
+#else
+		0,
+#endif
+#ifdef PASSOPTS
+		PASSOPTS_VERSION
+#else
+		"0"
+#endif
+	);
+#endif
 	/* note that it's safe to check extend[1], it will at worst be null.
 	** if we ever need extend[2], check length first... --B. */
 	if (extend[1] == '5')

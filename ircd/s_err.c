@@ -352,7 +352,19 @@ char *	replies[] = {
 #endif
 /* 318 RPL_ENDOFWHOIS */	":%s 318 %s %s :End of WHOIS list.",
 /* 319 RPL_WHOISCHANNELS */	":%s 319 %s %s :%s",
+#ifdef RPL_WHOISEXTRA
+/* 320 RPL_WHOISEXTRA */    ":%s 320 %s %s :%s", /* catch-all extra WHOIS information reply - non-standard use of 320 -- mh 20200111 */
+#else
+#ifdef RPL_WHOISCLOAKED
+#ifndef RPL_WHOISEXTRA
+/* 320 RPL_WHOISCLOAKED */  ":%s 320 %s %s :%s", /* client is cloaked/spoofed - non-standard use of 320 -- mh 20191230 */
+#endif
+#else
+#ifndef RPL_WHOISEXTRA
 /* 320 */ (char *)NULL,
+#endif
+#endif
+#endif
 /* 321 RPL_LISTSTART */	":%s 321 %s Channel :Users  Name",
 /* 322 RPL_LIST */	":%s 322 %s %s %d :%s",
 /* 323 RPL_LISTEND */	":%s 323 %s :End of LIST",

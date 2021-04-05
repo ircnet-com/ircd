@@ -236,6 +236,18 @@
 #define RPL_ENDOFWHOIS       318
 #define RPL_WHOISCHANNELS    319
 
+#ifdef WHOISEXTRA
+#define RPL_WHOISEXTRA       320 /* catch-all extra WHOIS information reply - non-standard use of 320 -- mh 20200111 */
+#endif
+
+#ifdef SPOOF_WHOISCLOAKED
+#ifdef RPL_WHOISEXTRA
+#define RPL_WHOISCLOAKED     RPL_WHOISEXTRA
+#else
+#define RPL_WHOISCLOAKED     320 /* client is cloaked/spoofed - non-standard use of 320 -- mh 20191230 */
+#endif
+#endif
+
 #define RPL_LISTSTART        321
 #define RPL_LIST             322
 #define RPL_LISTEND          323
