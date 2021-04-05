@@ -19,4 +19,9 @@
 #ifndef	PATCHLEVEL
 #define PATCHLEVEL "0211020003"		/* for server identification */
 #define DEVLEVEL 'a'
+#define PASSWDLEN_VERSION "1.00"
+#define VERSIONLEN_VERSION "1.00"
+#define PASSOPTS_VERSION "1.01"
+#define SPOOF_VERSION "1.02"
+#define WHOISEXTRA_VERSION "1.00"
 #endif

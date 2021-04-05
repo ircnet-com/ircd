@@ -52,7 +52,9 @@ typedef struct        LineItem aExtData;
 #define	REALLEN	 	50
 #define	TOPICLEN	255
 #define	CHANNELLEN	50
+#ifndef PASSWDLEN
 #define	PASSWDLEN 	20
+#endif
 #define	KEYLEN		23
 #define	BUFSIZE		512		/* WARNING: *DONT* CHANGE THIS!!!! */
 #define	MAXRECIPIENTS 	20
@@ -192,10 +194,17 @@ typedef enum Status {
 #define FLAGS_RESTRICT	0x0010 /* restricted user */
 #define FLAGS_AWAY	0x0020 /* user is away */
 #define FLAGS_EXEMPT    0x0040 /* user is exempted from k-lines */
+#ifdef SPOOF
+#define FLAGS_SPOOFED   0x0080 /* user is spoofed */
+#endif
 #ifdef XLINE
 #define FLAGS_XLINED	0x0100	/* X-lined client */
 #endif
-#define FLAGS_SASL  	0x0200	/* user is authenticated via SASL */
+#ifdef PASSOPTS
+#define FLAGS_REQPASS   0x0200 /* require the given password match an I-line password to connect -- mh 20200102 */
+#define POFLAG_REQPASS  0x01   /* passopts flag to require password to match and be present in I-line -- mh 20200111 */
+#endif
+#define FLAGS_SASL  	0x0400	/* user is authenticated via SASL */
 #define	SEND_UMODES	(FLAGS_INVISIBLE|FLAGS_OPER|FLAGS_WALLOP|FLAGS_AWAY|FLAGS_RESTRICT)
 #define	ALL_UMODES	(SEND_UMODES|FLAGS_LOCOP)
 
@@ -264,6 +273,15 @@ typedef enum Status {
 #define SetXlined(x)		((x)->user->flags |= FLAGS_XLINED)
 #define ClearXlined(x)		((x)->user->flags &= ~FLAGS_XLINED)
 #endif
+#ifdef SPOOF
+#define IsSpoofed(x)        ((x)->user && (x)->user->flags & FLAGS_SPOOFED)
+#define SetSpoofed(x)       ((x)->user->flags |= FLAGS_SPOOFED)
+#endif
+#ifdef PASSOPTS
+#define IsReqPass(x)    ((x)->user && (x)->user->flags & FLAGS_REQPASS)
+#define SetReqPass(x)   ((x)->user->flags |= FLAGS_REQPASS)
+#endif
+
 #define IsCAPNegotiation(x)  ((x)->cap_negotation)
 #define HasCap(x, y)         ((x)->caps & y)
 #define IsSASLAuthed(x)		 ((x)->user && (x)->user->flags & FLAGS_SASL)
@@ -379,6 +397,9 @@ struct	ListItem	{
 #define CFLAG_XEXEMPT		0x00080
 #endif
 #define CFLAG_REQUIRE_SASL  0x00100
+#ifdef SPOOF
+#define CFLAG_SPOOFED       0x00200
+#endif
 
 #define IsConfRestricted(x)	((x)->flags & CFLAG_RESTRICTED)
 #define IsConfRNoDNS(x)		((x)->flags & CFLAG_RNODNS)
@@ -389,6 +410,9 @@ struct	ListItem	{
 #define IsConfFallThrough(x)	((x)->flags & CFLAG_FALL)
 #ifdef XLINE
 #define IsConfXlineExempt(x)	((x)->flags & CFLAG_XEXEMPT)
+#endif
+#ifdef SPOOF
+#define IsConfSpoofed(x)        ((x)->flags & CFLAG_SPOOFED)
 #endif
 #define IsConfRequireSASL(x)	((x)->flags & CFLAG_REQUIRE_SASL)
 

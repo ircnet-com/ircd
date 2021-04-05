@@ -1264,7 +1264,11 @@ int	m_server_estab(aClient *cptr, char *sid, char *versionbuf)
 					   acptr->name, acptr->user->uid,
 					   acptr->user->username,
 					   acptr->user->host,
+#ifdef SPOOF
+					   get_client_ip(acptr),
+#else
 					   acptr->user->sip,
+#endif
 					   (*buf) ? buf : "+", acptr->info);
 		    }
 		else if (IsService(acptr) &&
@@ -1783,6 +1787,10 @@ static	void	report_configured_links(aClient *sptr, char *to, int mask)
 #endif
 			else if ((tmp->status & CONF_CLIENT))
 			{
+#ifdef SPOOF
+				if(IsConfSpoofed(tmp))
+					continue;
+#endif
 				sendto_one(sptr, replies[p[1]], ME, BadTo(to),
 					   c, host, (pass) ? "*" : null,
 					   name, port, get_conf_class(tmp),
@@ -2857,7 +2865,11 @@ int	m_etrace(aClient *cptr, aClient *sptr, int parc, char *parv[])
 				IsAnOper(acptr) ? "Oper" : "User",
 				get_client_class(acptr),
 				acptr->name, acptr->user->username,
+#ifdef SPOOF
+				acptr->user->host, get_client_ip(acptr),
+#else
 				acptr->user->host, acptr->user->sip,
+#endif
 #ifdef XLINE
 				acptr->user2, acptr->user3, 
 #else
@@ -2880,7 +2892,11 @@ int	m_etrace(aClient *cptr, aClient *sptr, int parc, char *parv[])
 				IsAnOper(acptr) ? "Oper" : "User", 
 				get_client_class(acptr), 
 				acptr->name, acptr->user->username, 
+#ifdef SPOOF
+				acptr->user->host, get_client_ip(acptr),
+#else
 				acptr->user->host, acptr->user->sip,
+#endif
 #ifdef XLINE
 				acptr->user2, acptr->user3, 
 #else
@@ -2916,7 +2932,11 @@ int	m_sidtrace(aClient *cptr, aClient *sptr, int parc, char *parv[])
 			IsAnOper(acptr) ? "Oper" : "User", 
 			MyClient(acptr) ? get_client_class(acptr) : -1, 
 			acptr->name, acptr->user->username,
+#ifdef SPOOF
+			cptr->user->host, get_client_ip(acptr),
+#else
 			acptr->user->host, acptr->user->sip, 
+#endif
 #ifdef XLINE
 			MyClient(acptr) ? acptr->user2 : "-",
 			MyClient(acptr) ? acptr->user3 : "-",
