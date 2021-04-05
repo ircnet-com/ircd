@@ -806,7 +806,7 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 #ifdef SPOOF_NOTICE
 		/* send a notice to client if the connection is spoofed.
 		 * notice is defined as SPOOF_NOTICE in config.h -- mh 20191230 */
-		if (IsConfSpoofed(sptr->confs->value.aconf))
+		if (IsSpoofed(sptr))
 		{
 			sendto_one(sptr, ":%s NOTICE %s :%s", ME, nick, SPOOF_NOTICE);
 		}

@@ -624,8 +624,8 @@ int	attach_Iline(aClient *cptr, struct hostent *hp, char *sockhost)
 #ifdef SPOOF
 		if(IsConfSpoofed(aconf))
 		{
-			strcpy(cptr->sockhost, aconf->name2);
-			strcpy(cptr->user->host, aconf->name2);
+		    strncpyzt(cptr->sockhost, aconf->name2, HOSTLEN+1);
+		    strncpyzt(cptr->user->host, aconf->name2, HOSTLEN+1);
 			SetSpoofed(cptr);
 		}
 #endif
