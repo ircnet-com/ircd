@@ -163,15 +163,14 @@ void cap_req(aClient *target, char *arg) {
 /*
  * The capability negotiation is complete.
  */
-void cap_end(aClient *cptr, aClient *sptr, char *arg) {
+int cap_end(aClient *cptr, aClient *sptr, char *arg) {
     if (IsRegistered(cptr)) {
-        return;
+        return 0;
     }
 
     if((sptr->sasl_service != NULL || sptr->sasl_auth_attempts > 0) && !IsSASLAuthed(sptr)) {
         // SASL authentication exchange has been aborted
-        process_implicit_sasl_abort(sptr);
-        return;
+        return process_implicit_sasl_abort(sptr);
     }
 
     cptr->cap_negotation = 0;
@@ -180,9 +179,13 @@ void cap_end(aClient *cptr, aClient *sptr, char *arg) {
     if (sptr->name[0] && sptr->user) {
         register_user(cptr, sptr, sptr->name, sptr->user->username);
     }
+
+    return 0;
 }
 
 int m_cap(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
+    int ret = 0;
+
     if (!strcasecmp(parv[1], "LS")) {
         cap_ls(sptr, parv[2]);
     }
@@ -193,8 +196,8 @@ int m_cap(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
         cap_req(sptr, parv[2]);
     }
     else if (!strcasecmp(parv[1], "END")) {
-        cap_end(cptr, sptr, NULL);
+        ret = cap_end(cptr, sptr, NULL);
     }
 
-    return 0;
+    return ret;
 }

@@ -35,8 +35,9 @@ int m_authenticate(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
 
     if (*parv[1] == ':' || strchr(parv[1], ' '))
     {
-        exit_client(sptr, sptr, sptr, "Malformed AUTHENTICATE");
-        return 0;
+        sptr->exitc = EXITC_SASL;
+        exit_client(cptr, sptr, sptr, "Malformed AUTHENTICATE");
+        return cptr == sptr ? FLUSH_BUFFER : 0;
     }
 
     if(IsSASLAuthed(sptr))
@@ -54,8 +55,9 @@ int m_authenticate(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
     if(!sptr->user) {
         // According to the IRCv3 specifications a client must sent NICK/USER after CAP LS / CAP REQ.
         // If we get here, we did not receive USER yet.
-        exit_client(sptr, sptr, sptr, "Invalid IRCv3 implementation");
-        return 0;
+        sptr->exitc = EXITC_SASL;
+        exit_client(cptr, sptr, sptr, "Invalid IRCv3 implementation");
+        return cptr == sptr ? FLUSH_BUFFER : 0;
     }
 
     if(!*sptr->user->uid) {
@@ -71,8 +73,9 @@ int m_authenticate(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
 
         if(!sptr->sasl_service) {
             // No SASL service found.
-            exit_client(sptr, sptr, sptr, "SASL service is temporary not available");
-            return 0;
+            sptr->exitc = EXITC_SASL;
+            exit_client(cptr, sptr, sptr, "SASL service is temporary not available");
+            return cptr == sptr ? FLUSH_BUFFER : 0;
         }
 
         sendto_service(sptr->sasl_service, "SASL %s %s H %s", sptr->user->uid, sptr->sasl_service->name,
@@ -156,6 +159,7 @@ void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
             acptr->sasl_auth_attempts++;
 
             if(acptr->sasl_auth_attempts >= MAX_SASL_AUTH_ATTEMPTS) {
+                acptr->exitc = EXITC_SASL;
                 exit_client(acptr, acptr, &me, "SASL authentication failed");
             }
 
@@ -201,7 +205,7 @@ void m_sasl_server(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
  * Executed when the client aborted the SASL authentication exchange implicitly.
  * Example: the client sent "CAP END" before completing the authentication.
  */
-void process_implicit_sasl_abort(aClient *sptr) {
+int process_implicit_sasl_abort(aClient *cptr, aClient *sptr) {
     if (sptr->sasl_service != NULL) {
         // Inform the service that the authentication has been aborted
         sendto_service(sptr->sasl_service, "SASL %s %s D A", sptr->user->uid, sptr->sasl_service->name);
@@ -212,7 +216,9 @@ void process_implicit_sasl_abort(aClient *sptr) {
      * which would expose the IP address of the user. We disconnect him until he explicitly decides to connect
      * without authentication.
      */
-    exit_client(sptr, sptr, sptr, "SASL authentication failed");
+    sptr->exitc = EXITC_SASL;
+    exit_client(cptr, sptr, sptr, "SASL authentication failed");
+    return cptr == sptr ? FLUSH_BUFFER : 0;
 }
 
 /*

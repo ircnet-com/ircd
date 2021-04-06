@@ -981,7 +981,8 @@ typedef enum ServerChannels {
 #define EXITC_MBUF	'M'	/* mem alloc error */
 #define EXITC_PING	'P'	/* ping timeout */
 #define EXITC_BADPASS	'p'	/* bad password */
-#define EXITC_SASL_REQUIRED	'S'	/* SASL authentication required */
+#define EXITC_SASL_REQUIRED	's'	/* SASL authentication required */
+#define EXITC_SASL	's'	/* SASL authentication failed */
 #define EXITC_SENDQ	'Q'	/* send queue exceeded */
 #define EXITC_REF	'R'	/* Refused */
 #ifdef TKLINE
