@@ -143,7 +143,10 @@ void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
         sendto_one(acptr, replies[RPL_LOGGEDIN], me.name, BadTo(acptr->name), parv[4]);
 
         if (parc >= 6) {
-            // parv[5] is the cloaked host name - not processed in this implementation
+            // Set cloaked hostname
+            strncpyzt(acptr->sockhost, parv[5], HOSTLEN+1);
+            strncpyzt(acptr->user->host, parv[5], HOSTLEN+1);
+            SetSpoofed(acptr);
         }
     }
     else if(*parv[3] == 'D') {
