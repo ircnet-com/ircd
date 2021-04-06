@@ -768,6 +768,10 @@ static	void	exit_one_client(aClient *cptr, aClient *sptr, aClient *from,
 		/* remove server from svrtop */
 		unregister_server(sptr);
 	}
+	else if(!IsPerson(sptr) && IsCAPNegotiation(sptr) && sptr->user && *sptr->user->uid) {
+	    // Someone who got an UID during SASL authentication but did not register
+        del_from_uid_hash_table(sptr->user->uid, sptr);
+	}
 	else if (!IsPerson(sptr) && !IsService(sptr))
 	{
 				    /* ...this test is *dubious*, would need

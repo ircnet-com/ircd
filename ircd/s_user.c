@@ -736,8 +736,12 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 			istat.is_l_myclnt_t = timeofday;
 			istat.is_l_myclnt = istat.is_myclnt;
 		}
-		if(!*sptr->user->uid) // may have been set in m_authenticate() already
-    		strcpy(sptr->user->uid, next_uid());
+        // may have been set in m_authenticate() already
+		if(!*sptr->user->uid)
+        {
+            strcpy(sptr->user->uid, next_uid());
+            add_to_uid_hash_table(sptr->user->uid, sptr);
+        }
 		if (nick[0] == '0' && nick[1] == '\0')
 		{
 			strncpyzt(nick, sptr->user->uid, UIDLEN + 1);
@@ -781,7 +785,6 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 		sprintf(buf, "%s!%s@%s", nick, user->username, user->host);
 #endif
 #endif
-		add_to_uid_hash_table(sptr->user->uid, sptr);
 		sptr->exitc = EXITC_REG;
 		sendto_one(sptr, replies[RPL_WELCOME], ME, BadTo(nick), buf);
 		/* This is a duplicate of the NOTICE but see below...*/
