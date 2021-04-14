@@ -144,6 +144,7 @@ aClient	*make_client(aClient *from)
         cptr->caps = 0;
         cptr->sasl_service = NULL;
         cptr->sasl_auth_attempts = 0;
+        cptr->cloak_tmp = NULL;
 	    }
 	return (cptr);
 }
@@ -152,6 +153,13 @@ void	free_client(aClient *cptr)
 {
 	if (cptr->info != DefInfo)
 		MyFree(cptr->info);
+
+    if(cptr->cloak_tmp)
+    {
+        MyFree(cptr->cloak_tmp);
+        cptr->cloak_tmp = NULL;
+    }
+
 	/* True only for local clients */
 	if (cptr->hopcount == 0 || (IsServer(cptr) && cptr->hopcount == 1))
 	{

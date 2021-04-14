@@ -600,6 +600,7 @@ struct Client	{
     int cap_negotation; /* CAP negotiation is in progress. Registration must wait for "CAP END" */
     aClient *sasl_service; /* The SASL service that is responsible for this user. */
     int sasl_auth_attempts; /* Number of SASL authentication attempts */
+    char *cloak_tmp; /* Contains the cloaked hostname until it was set by attach_Iline() */
 };
 
 #define	CLIENT_LOCAL_SIZE sizeof(aClient)
