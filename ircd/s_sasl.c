@@ -143,7 +143,7 @@ void m_sasl_service(aClient *cptr, aClient *sptr, int parc, char *parv[]) {
         sendto_one(acptr, replies[RPL_LOGGEDIN], me.name, BadTo(acptr->name), parv[4]);
 
         if (parc >= 6) {
-            // Set cloaked hostname. It will finally be set by attach_Iline().
+            // Store cloaked hostname. It will finally be set by attach_Iline().
             acptr->cloak_tmp = mystrdup(parv[5]);
         }
     }
