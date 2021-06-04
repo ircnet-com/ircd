@@ -604,7 +604,7 @@ int	register_user(aClient *cptr, aClient *sptr, char *nick, char *username)
 
 #ifdef SPOOF
 #ifdef SPOOF_IDENTCHAR
-		if(IsConfSpoofed(aconf))
+		if(IsSpoofed(cptr))
 		{
 			prefix = SPOOF_IDENTCHAR;
 			*user->username = prefix;
