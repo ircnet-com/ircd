@@ -175,6 +175,10 @@ char	*iline_flags_to_string(long flags)
 	{
 		*s++ = 'F';
 	}
+    if (flags & CFLAG_REQUIRE_SASL)
+    {
+        *s++ = 'S';
+    }
 	if (s == ifsbuf)
 	{
 		*s++ = '-';
